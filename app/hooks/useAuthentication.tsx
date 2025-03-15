@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { FetchHelper } from "../helpers/FetchHelper";
-import { redirecionar } from "../helpers/Redirecionar";
 import { TAuthenticationResponse } from "../types/TAuthentication";
+import { useRedirect } from "./useRedirect";
 
 type LoginCredentials = {
   email: string;
@@ -9,14 +9,14 @@ type LoginCredentials = {
 };
 
 export const useAuthentication = () => {
+  const { redirect } = useRedirect();
+
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       const response = await FetchHelper.post<TAuthenticationResponse>({
         rota: "/login",
         body: credentials,
       });
-
-      console.log({ response });
 
       if (!response.sucesso) {
         throw new Error(response.message);
@@ -27,9 +27,8 @@ export const useAuthentication = () => {
 
       return response.resposta[0];
     },
-    onError: () => {
-      redirecionar("login");
-    },
+    onError: () => redirect("index"),
+    onSuccess: () => redirect("home"),
   });
 
   return {

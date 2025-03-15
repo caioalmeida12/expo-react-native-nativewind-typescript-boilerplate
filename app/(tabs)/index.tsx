@@ -1,22 +1,87 @@
-import { View, Text } from "react-native";
-import { ExternalLink } from "@/components/ExternalLink";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useState } from "react";
+import { useAuthentication } from "../hooks/useAuthentication";
+import { Stack } from "expo-router";
 
-export default function TabOneScreen() {
+export default function LoginScreen() {
+  const [email, setEmail] = useState("caiodealmeida12@gmail.com");
+  const [password, setPassword] = useState("123456");
+  const { login, isLoading, error } = useAuthentication();
+
+  const handleLogin = () => {
+    login({ email, password });
+  };
+
   return (
-    <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-      <Text className="text-xl font-bold text-dark dark:text-white">Home</Text>
-      <Text className="text-xs font-mono text-dark dark:text-white mt-4">
-        Text with custom font (SpaceMono x NativeWind)
-      </Text>
-      <View className="h-[1px] w-4/5 my-8 bg-[#eee] dark:bg-zinc-900" />
-      <View className="mt-2 mx-5 items-center">
-        <ExternalLink href="https://docs.expo.io/get-started/create-a-new-app/#opening-the-app-on-your-phonetablet">
-          <Text className="text-center text-blue-500 dark:text-white">
-            Tap here if your app doesn't automatically update after making
-            changes
-          </Text>
-        </ExternalLink>
-      </View>
-    </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <View className="flex-1 items-center justify-center bg-white dark:bg-black px-6">
+          <View className="w-full max-w-sm space-y-6">
+            <View className="space-y-2">
+              <Text className="text-3xl font-bold text-center text-dark dark:text-white">
+                Welcome Back
+              </Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 text-center">
+                Sign in to your account
+              </Text>
+            </View>
+
+            <View className="space-y-4">
+              <View>
+                <TextInput
+                  className="w-full h-12 px-4 border border-zinc-200 dark:border-zinc-700 rounded-lg text-dark dark:text-white bg-white dark:bg-zinc-900"
+                  placeholder="Email"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+
+              <View>
+                <TextInput
+                  className="w-full h-12 px-4 border border-zinc-200 dark:border-zinc-700 rounded-lg text-dark dark:text-white bg-white dark:bg-zinc-900"
+                  placeholder="Password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                />
+              </View>
+
+              {error && (
+                <Text className="text-red-500 text-sm text-center">
+                  {error instanceof Error ? error.message : "Login failed"}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                className={`w-full h-12 flex items-center justify-center rounded-lg bg-blue-500 ${
+                  isLoading ? "opacity-50" : ""
+                }`}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                <Text className="text-white font-semibold">
+                  {isLoading ? "Signing in..." : "Sign In"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </>
   );
 }
