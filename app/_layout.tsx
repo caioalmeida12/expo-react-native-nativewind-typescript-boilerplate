@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import "../global.css"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -50,15 +51,20 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+const queryClient  = new QueryClient() 
+
 function RootLayoutNav() {
   const { colorScheme } = useColorScheme();
 
+
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <QueryClientProvider client={queryClient} >
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }
