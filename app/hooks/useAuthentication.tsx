@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FetchHelper } from "../helpers/FetchHelper";
-import { TAuthenticationResponse } from "../types/TAuthentication";
+import { TLoginResponse } from "../types/TAuthentication";
 import { useRedirect } from "./useRedirect";
 
 type LoginCredentials = {
@@ -10,10 +10,16 @@ type LoginCredentials = {
 
 export const useAuthentication = () => {
   const { redirect } = useRedirect();
+  const queryClient = useQueryClient();
+
+  const userInfo = useQuery({
+    initialData: null,
+    queryKey: ["userInfo"],
+  });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await FetchHelper.post<TAuthenticationResponse>({
+      const response = await FetchHelper.post({
         rota: "/login",
         body: credentials,
       });
@@ -25,14 +31,30 @@ export const useAuthentication = () => {
       if (!response.resposta.length)
         throw new Error("Não foi possível realizar o login");
 
-      return response.resposta[0];
+      return (
+        response.resposta
+          .map((res) => TLoginResponse.safeParse(res))
+          .filter((res) => res.success)
+          .map((res) => res.data)
+          .at(0) ?? null
+      );
     },
-    onError: () => redirect("index"),
-    onSuccess: () => redirect("home"),
+    onError: () => {
+      console.log("Invalid authentication response at useAuthentication");
+      redirect("/", { throw: true });
+    },
+    onSuccess: (userInfo) => {
+      queryClient.setQueryData(["userInfo"], userInfo);
+      queryClient.invalidateQueries({
+        queryKey: ["userInfo"],
+      });
+
+      redirect("/home");
+    },
   });
 
   return {
-    userInfo: loginMutation.data,
+    userInfo: userInfo.data as TLoginResponse | null,
     login: loginMutation.mutate,
     isLoading: loginMutation.isPending,
     error: loginMutation.error,

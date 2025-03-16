@@ -11,13 +11,10 @@ import { useColorScheme } from "nativewind";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
-import "../global.css"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+import { Try } from "expo-router/build/views/Try";
+import "../../global.css";
+import { NullUserInfoErrorBoundary } from "../components/NullUserInfoErrorBoundary";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -29,7 +26,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    SpaceMono: require("../../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
 
@@ -51,21 +48,21 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
-const queryClient  = new QueryClient() 
+const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const { colorScheme } = useColorScheme();
 
-
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <QueryClientProvider client={queryClient} >
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-      </Stack>
-      </QueryClientProvider>
+    <ThemeProvider value={colorScheme === "light" ? DarkTheme : DefaultTheme}>
+      <Try catch={NullUserInfoErrorBoundary}>
+        <QueryClientProvider client={queryClient}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          </Stack>
+        </QueryClientProvider>
+      </Try>
     </ThemeProvider>
   );
 }
-
