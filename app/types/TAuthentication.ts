@@ -27,6 +27,12 @@ export const TStudentInfoResponse = z.object({
   hasKey: z.number().transform(Boolean),
   cabinet: z.number().min(1).max(44).nullable().default(null),
   key: z.number().min(1).max(12).nullable().default(null),
+  course: z.object({
+    id: z.number(),
+    description: z.string(),
+    initials: z.string(),
+    campus_id: z.number(),
+  }),
 });
 
 export type TStudentInfoResponse = z.infer<typeof TStudentInfoResponse>;

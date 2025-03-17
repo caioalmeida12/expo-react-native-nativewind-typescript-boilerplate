@@ -16,7 +16,6 @@ export const useAuthentication = () => {
   const userInfo = useQuery({
     initialData: null,
     queryKey: ["userInfo"],
-    queryFn: () => null,
   });
 
   const loginMutation = useMutation({

@@ -23,7 +23,7 @@ export const Navbar = ({ navItems, showLogout = true }: INavbarProps) => {
   const { logout } = useAuthentication();
 
   return (
-    <View className="bg-verde-400 px-6 py-4">
+    <View className="bg-verde-400 px-4 py-4">
       <View className="flex-row items-center justify-between">
         <TouchableOpacity onPress={() => setIsSidebarOpen(!isSidebarOpen)}>
           <Ionicons name="menu" size={24} color="white" />

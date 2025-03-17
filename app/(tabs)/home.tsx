@@ -2,6 +2,8 @@ import { Stack } from "expo-router";
 import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { Navbar } from "../components/Navbar";
 import { useStudentInfo } from "../hooks/useStudentInfo";
+import { DatesHelper } from "../helpers/DatesHelper";
+import { PersonalInformations } from "../components/PersonalInformations";
 
 export default function HomeScreen() {
   const { studentInfo, isLoading } = useStudentInfo();
@@ -23,9 +25,10 @@ export default function HomeScreen() {
             },
           ]}
         />
-        <View>
-          <Text>{studentInfo?.name}</Text>
-          <Text>{"MAKONHA"}</Text>
+        <View className="p-4">
+          {studentInfo ? (
+            <PersonalInformations studentInfo={studentInfo} />
+          ) : null}
         </View>
       </KeyboardAvoidingView>
     </>
