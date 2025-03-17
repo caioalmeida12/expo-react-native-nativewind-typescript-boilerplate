@@ -15,6 +15,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Try } from "expo-router/build/views/Try";
 import "../../global.css";
 import { NullUserInfoErrorBoundary } from "../components/NullUserInfoErrorBoundary";
+import { View } from "react-native";
+import { Navbar } from "@/components/Navbar";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -57,9 +59,8 @@ function RootLayoutNav() {
     <ThemeProvider value={colorScheme === "light" ? DarkTheme : DefaultTheme}>
       <Try catch={NullUserInfoErrorBoundary}>
         <QueryClientProvider client={queryClient}>
-          <Stack>
+          <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           </Stack>
         </QueryClientProvider>
       </Try>

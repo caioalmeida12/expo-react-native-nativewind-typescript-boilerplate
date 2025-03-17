@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FetchHelper } from "../helpers/FetchHelper";
 import { TLoginResponse } from "../types/TAuthentication";
 import { useRedirect } from "./useRedirect";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type LoginCredentials = {
   email: string;
@@ -15,6 +16,7 @@ export const useAuthentication = () => {
   const userInfo = useQuery({
     initialData: null,
     queryKey: ["userInfo"],
+    queryFn: () => null,
   });
 
   const loginMutation = useMutation({
@@ -53,10 +55,25 @@ export const useAuthentication = () => {
     },
   });
 
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await AsyncStorage.removeItem("token");
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(["userInfo"], null);
+      queryClient.invalidateQueries({
+        queryKey: ["userInfo"],
+      });
+
+      redirect("/", { throw: true });
+    },
+  });
+
   return {
     userInfo: userInfo.data as TLoginResponse | null,
     login: loginMutation.mutate,
-    isLoading: loginMutation.isPending,
-    error: loginMutation.error,
+    logout: logoutMutation.mutate,
+    isLoading: loginMutation.isPending || logoutMutation.isPending,
+    error: loginMutation.error || logoutMutation.error,
   };
 };

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLayoutEffect } from "react";
 import { FetchHelper } from "../helpers/FetchHelper";
 import { TStudentInfoResponse } from "../types/TAuthentication";
 import { useAuthentication } from "./useAuthentication";
