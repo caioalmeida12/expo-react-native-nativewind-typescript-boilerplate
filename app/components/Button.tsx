@@ -3,8 +3,8 @@ import { TouchableOpacity, Text, TouchableOpacityProps } from "react-native";
 import { twMerge } from "tailwind-merge";
 
 interface ButtonProps extends TouchableOpacityProps {
-  texto: string;
-  variante: "add" | "remove" | "edit" | "hide";
+  text: string;
+  variant: "add" | "remove" | "edit" | "hide";
   disabled?: boolean;
 }
 
@@ -23,8 +23,8 @@ const textColorPorVariante = {
 };
 
 export function Button({
-  texto,
-  variante,
+  text: texto,
+  variant: variante,
   className,
   disabled,
   ...rest

@@ -89,17 +89,24 @@ const fetchAPI = async <T>({
       message: "A URL da rota da API não foi informada.",
     };
 
-  const token = await AsyncStorage.getItem("authorization");
+  const token = await AsyncStorage.getItem("token");
+
+  const requestHeaders: HeadersInit = {
+    "Content-Type": "application/json",
+    ...headers,
+  };
+
+  if (token) {
+    (
+      requestHeaders as typeof requestHeaders & { authorization: string }
+    ).authorization = `Bearer ${token}`;
+  }
 
   const resposta_inicial = await fetch(
     process.env.EXPO_PUBLIC_URL_BASE_API + rota,
     {
       method: metodo,
-      headers: {
-        "content-type": "application/json",
-        authorization: token ? `Bearer ${token}` : "",
-        ...headers,
-      },
+      headers: requestHeaders,
       body: body ? JSON.stringify(body) : undefined,
     }
   );

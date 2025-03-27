@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import { DatesHelper } from "../helpers/DatesHelper";
 import { TStudentInfoResponse } from "../types/TAuthentication";
+import { Section } from "./Section";
 
 export function PersonalInformations({
   studentInfo,
@@ -8,7 +9,7 @@ export function PersonalInformations({
   studentInfo: TStudentInfoResponse;
 }) {
   return (
-    <View className="rounded border-[1px] border-cinza-600 bg-branco-400 p-4 flex flex-col gap-y-2">
+    <Section>
       <Text className="text-base font-bold text-verde-400">
         Informações pessoais
       </Text>
@@ -36,6 +37,6 @@ export function PersonalInformations({
           </Text>
         </View>
       </View>
-    </View>
+    </Section>
   );
 }

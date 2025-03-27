@@ -101,8 +101,8 @@ export default function LoginScreen() {
             <LoadingMessage isLoading={isLoading} />
 
             <Button
-              texto="Entrar"
-              variante="add"
+              text="Entrar"
+              variant="add"
               onPress={handleLogin}
               disabled={isLoading}
             />

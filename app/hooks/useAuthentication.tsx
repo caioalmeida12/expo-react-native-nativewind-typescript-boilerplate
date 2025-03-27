@@ -16,6 +16,11 @@ export const useAuthentication = () => {
   const userInfo = useQuery({
     initialData: null,
     queryKey: ["userInfo"],
+    queryFn: async () => {
+      const userInfo = await AsyncStorage.getItem("userInfo");
+
+      return JSON.parse(userInfo || "null") as TLoginResponse | null;
+    },
   });
 
   const loginMutation = useMutation({
@@ -44,7 +49,10 @@ export const useAuthentication = () => {
       console.log("Invalid authentication response at useAuthentication");
       redirect("/", { throw: true });
     },
-    onSuccess: (userInfo) => {
+    onSuccess: async (userInfo) => {
+      await AsyncStorage.setItem("token", userInfo?.access_token || "");
+      await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
+
       queryClient.setQueryData(["userInfo"], userInfo);
       queryClient.invalidateQueries({
         queryKey: ["userInfo"],
