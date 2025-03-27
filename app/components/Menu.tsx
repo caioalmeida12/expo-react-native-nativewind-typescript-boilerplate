@@ -199,7 +199,7 @@ const LongMeal = (props: TMenuAndMeal, showButton: boolean) => {
       </View>
       {showButton && statusText === "available" && (
         <View className="mt-2 flex-col gap-y-2">
-          <View className="hidden" ref={responseMessageRef}></View>
+          <View className="hidden" ref={responseMessageRef} />
           <Button
             text="Reservar"
             variant="add"
