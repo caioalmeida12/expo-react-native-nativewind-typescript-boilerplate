@@ -1,52 +1,53 @@
-import { useRef } from "react";
-import { View } from "react-native";
+import { useCallback, useState } from "react";
+import { Text } from "react-native";
 
 type ResponseMessage =
   | { success: boolean; message: string }
   | { message: string };
 
+type ResponseStyle = {
+  isInfo: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+};
+
 const useResponseMessage = () => {
-  const responseMessageRef = useRef<View | null>(null);
+  const [message, setMessage] = useState("");
+  const [style, setStyle] = useState<ResponseStyle>({
+    isInfo: true,
+    isSuccess: false,
+    isError: false,
+  });
 
-  const updateMessage = (response: ResponseMessage) => {
-    if (!responseMessageRef.current) return;
-
-    // Remove all color classes
-    responseMessageRef.current?.setNativeProps({
-      className: responseMessageRef.current?.props.className?.replace(
-        /(text-green-300|text-red-400|text-blue-400|hidden)/g,
-        ""
-      ),
-    });
+  const updateMessage = useCallback((response: ResponseMessage) => {
+    setMessage(response.message);
 
     if (!("success" in response)) {
-      responseMessageRef.current?.setNativeProps({
-        className:
-          responseMessageRef.current?.props.className + " text-blue-400",
-      });
-      return;
-    }
-
-    if (response.success) {
-      responseMessageRef.current?.setNativeProps({
-        className:
-          (responseMessageRef.current?.props.className || "").replace(
-            /(text-red-400|text-blue-400)/g,
-            ""
-          ) + " text-green-300",
-      });
+      setStyle({ isInfo: true, isSuccess: false, isError: false });
     } else {
-      responseMessageRef.current?.setNativeProps({
-        className:
-          (responseMessageRef.current?.props.className || "").replace(
-            /(text-green-300|text-blue-400)/g,
-            ""
-          ) + " text-red-400",
+      setStyle({
+        isInfo: false,
+        isSuccess: response.success,
+        isError: !response.success,
       });
     }
+  }, []);
+
+  const ResponseText = () => {
+    if (!message) return null;
+
+    let colorClass = style.isInfo
+      ? "text-blue-400"
+      : style.isSuccess
+        ? "text-green-300"
+        : "text-red-400";
+
+    return (
+      <Text className={`text-center text-sm ${colorClass}`}>{message}</Text>
+    );
   };
 
-  return { responseMessageRef, updateMessage };
+  return { ResponseText, updateMessage };
 };
 
 export default useResponseMessage;

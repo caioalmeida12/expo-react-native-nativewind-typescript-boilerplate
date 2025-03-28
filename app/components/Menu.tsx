@@ -139,7 +139,7 @@ const ShortMeal = (props: TMenuAndMeal) => {
 
 const LongMeal = (props: TMenuAndMeal, showButton: boolean) => {
   const [buttonDisabled, setButtonDisabled] = useState(true);
-  const { updateMessage, responseMessageRef } = useResponseMessage();
+  const { updateMessage, ResponseText } = useResponseMessage();
   const { reserve } = useMeals();
 
   useEffect(() => {
@@ -199,7 +199,7 @@ const LongMeal = (props: TMenuAndMeal, showButton: boolean) => {
       </View>
       {showButton && statusText === "available" && (
         <View className="mt-2 flex-col gap-y-2">
-          <View className="hidden" ref={responseMessageRef} />
+          <ResponseText />
           <Button
             text="Reservar"
             variant="add"

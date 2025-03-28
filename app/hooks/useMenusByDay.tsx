@@ -43,7 +43,6 @@ export const useMenusByDay = (initialDate?: string) => {
     // Always need to have 4 menus, even if none were found
     // Default menus with IDs from 1 to 4
     const processedMenus = [1, 2, 3, 4, 7].map((id) => {
-      console.log({ menusQuery: menusQuery.data, id });
       // Look for a menu item that has a menu with matching ID
       const foundMenuItem = menusQuery.data?.find(
         (item) => item.menu.meal_id == id
