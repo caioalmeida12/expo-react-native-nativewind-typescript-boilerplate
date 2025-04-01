@@ -1,11 +1,12 @@
 import { Stack } from "expo-router";
 import React, { memo } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { KeyboardAvoidingView, Platform, View, Text } from "react-native";
 import { useMenusByDay } from "../hooks/useMenusByDay";
 import { Menu, MealLoading } from "./Menu";
 import { Ionicons } from "@expo/vector-icons";
 import { Section } from "./Section";
 import { Slider } from "./Slider";
+import { Tooltip } from "./Tooltip";
 
 type MenuItemProps = {
   menuItem: any;
@@ -56,6 +57,21 @@ export default function MenusByDay() {
     hasNoMenus,
   } = useMenusByDay();
 
+  const warningTooltip = (
+    <Tooltip
+      triggerElement={
+        <View className="ml-2">
+          <Ionicons name="warning" size={20} color="#f87171" />
+        </View>
+      }
+      contentElement={
+        <Text className="text-sm text-gray-700">
+          Não existem refeições disponíveis para este dia.
+        </Text>
+      }
+    />
+  );
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -75,13 +91,7 @@ export default function MenusByDay() {
               if (daysDifference < -7) return;
               goToPreviousDay();
             }}
-            tooltip={
-              hasNoMenus ? (
-                <View className="ml-2">
-                  <Ionicons name="warning" size={20} color="#f87171" />
-                </View>
-              ) : undefined
-            }
+            tooltip={hasNoMenus ? warningTooltip : undefined}
           />
 
           <View className="flex-1">

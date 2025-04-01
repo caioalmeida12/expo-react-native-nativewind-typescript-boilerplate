@@ -61,7 +61,7 @@ const CancelActions = ({
   onClose,
 }: CancelMealModalProps & { onClose: () => void }) => {
   const [buttonDisabled, setButtonDisabled] = useState(true);
-  const { updateMessage, responseMessageRef } = useResponseMessage();
+  const { updateMessage, ResponseText } = useResponseMessage();
   const { cancel } = useMeals();
 
   useEffect(() => {
@@ -80,10 +80,10 @@ const CancelActions = ({
         onSuccess: (response) => {
           updateMessage({
             ...response,
-            message: (response as any)?.message,
-            success: response.sucesso,
+            message: "Refeição cancelada com sucesso!",
+            success: true,
           });
-          setTimeout(onClose, 1000);
+          setTimeout(onClose, 2000);
         },
         onError: (error) =>
           updateMessage({ message: error.message, success: false }),
@@ -93,7 +93,7 @@ const CancelActions = ({
 
   return (
     <View className="gap-y-4">
-      <View className="hidden" ref={responseMessageRef} />
+      <ResponseText />
       <Button
         variant="remove"
         text="Sim, desejo cancelar"

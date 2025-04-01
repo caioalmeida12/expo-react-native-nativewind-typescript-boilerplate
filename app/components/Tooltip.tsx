@@ -17,24 +17,32 @@ export const Tooltip = forwardRef<View, TooltipProps>(
   ({ contentElement, triggerElement, defaultOpen }, ref) => {
     const [isOpen, setIsOpen] = useState(defaultOpen ?? false);
     const [tooltipLayout, setTooltipLayout] = useState({
-      x: 0,
-      y: 0,
+      pageX: 0,
+      pageY: 0,
       width: 0,
       height: 0,
     });
+    const triggerRef = React.useRef<View>(null);
 
-    const handleOpenTooltip = () => setIsOpen(true);
+    const handleOpenTooltip = () => {
+      if (triggerRef.current) {
+        triggerRef.current.measureInWindow((x, y, width, height) => {
+          setTooltipLayout({
+            pageX: x,
+            pageY: y,
+            width,
+            height,
+          });
+          setIsOpen(true);
+        });
+      }
+    };
+
     const handleCloseTooltip = () => setIsOpen(false);
 
     return (
       <View ref={ref}>
-        <Pressable
-          onPress={handleOpenTooltip}
-          onLayout={(event) => {
-            const { x, y, width, height } = event.nativeEvent.layout;
-            setTooltipLayout({ x, y, width, height });
-          }}
-        >
+        <Pressable ref={triggerRef} onPress={handleOpenTooltip}>
           {triggerElement}
         </Pressable>
 
@@ -49,21 +57,12 @@ export const Tooltip = forwardRef<View, TooltipProps>(
             onPress={handleCloseTooltip}
           >
             <Animated.View
-              entering={FadeIn.duration(200).withCallback(() => {
-                "worklet";
-                // Callback when animation starts
-              })}
+              entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(200)}
               className="absolute"
               style={{
-                top: tooltipLayout.y + tooltipLayout.height + 5,
-                left: Math.max(
-                  10,
-                  Math.min(
-                    tooltipLayout.x,
-                    Dimensions.get("window").width - 250
-                  )
-                ),
+                top: tooltipLayout.pageY + tooltipLayout.height + 5,
+                left: tooltipLayout.pageX - 16,
               }}
             >
               <Animated.View

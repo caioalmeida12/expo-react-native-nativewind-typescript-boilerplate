@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { FetchHelper } from "../helpers/FetchHelper";
-import { TMeal, TMenu, TMenuAndMeal } from "../types/TMeal";
+import { TMeal, TMenuAndMeal } from "../types/TMeal";
+import { useMenusByDay } from "./useMenusByDay";
 
 type ReservationParams = {
   meal_id: number;
@@ -14,24 +15,7 @@ type JustificationParams = {
 
 export const useMeals = () => {
   const queryClient = useQueryClient();
-
-  // Query for meals by day
-  const mealsByDay = useQuery({
-    queryKey: ["mealsByDay"],
-    queryFn: async ({ queryKey, signal }) => {
-      const date = new Date().toISOString().split("T")[0];
-      const response = await FetchHelper.get<TMenuAndMeal[]>({
-        rota: `/all/menus-today?date=${date}`,
-        headers: { signal: signal as any },
-      });
-
-      if (!response.sucesso) {
-        throw new Error(response.message);
-      }
-
-      return response.resposta;
-    },
-  });
+  const { menus, isLoading: isMenusLoading } = useMenusByDay();
 
   // Mutation for meal reservation
   const reserveMutation = useMutation({
@@ -48,27 +32,7 @@ export const useMeals = () => {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mealsByDay"] });
-      queryClient.invalidateQueries({ queryKey: ["mealHistory"] });
-    },
-  });
-
-  // Mutation for meal cancellation
-  const cancelMutation = useMutation({
-    mutationFn: async (params: ReservationParams) => {
-      const response = await FetchHelper.put<{ message: string }>({
-        rota: "/student/schedulings/cancel",
-        body: params,
-      });
-
-      if (!response.sucesso) {
-        throw new Error(response.message);
-      }
-
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mealsByDay"] });
+      queryClient.invalidateQueries({ queryKey: ["menusByDay"] });
       queryClient.invalidateQueries({ queryKey: ["mealHistory"] });
     },
   });
@@ -107,6 +71,26 @@ export const useMeals = () => {
     },
   });
 
+  // Mutation for meal cancellation
+  const cancelMutation = useMutation({
+    mutationFn: async (params: ReservationParams) => {
+      const response = await FetchHelper.put<{ message: string }>({
+        rota: "/student/schedulings/cancel",
+        body: params,
+      });
+
+      if (!response.sucesso) {
+        throw new Error(response.message);
+      }
+
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["menusByDay"] });
+      queryClient.invalidateQueries({ queryKey: ["mealHistory"] });
+    },
+  });
+
   // Mutation for meal justification
   const justifyMutation = useMutation({
     mutationFn: async ({
@@ -131,7 +115,7 @@ export const useMeals = () => {
 
   return {
     // Queries
-    meals: mealsByDay.data,
+    meals: menus,
     authorizedMeals: authorizedMeals.data,
     mealHistory: mealHistory.data,
 
@@ -142,19 +126,13 @@ export const useMeals = () => {
 
     // Loading states
     isLoading:
-      mealsByDay.isPending ||
-      authorizedMeals.isPending ||
-      mealHistory.isPending,
+      isMenusLoading || authorizedMeals.isPending || mealHistory.isPending,
 
     // Error states
     error:
-      mealsByDay.error ||
-      reserveMutation.error ||
-      cancelMutation.error ||
-      justifyMutation.error,
+      reserveMutation.error || cancelMutation.error || justifyMutation.error,
 
     // Refetch functions
-    refetchMeals: mealsByDay.refetch,
     refetchHistory: mealHistory.refetch,
   };
 };

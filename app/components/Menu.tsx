@@ -23,7 +23,7 @@ const statusElementByStatusText = {
   closed: (
     <MealStatus
       color="gray-600"
-      icon="circulo-x"
+      icon="relogio-x"
       text="Encerrado"
       tooltipText="O horário de reservas já foi ultrapassado."
     />
@@ -129,7 +129,7 @@ const ShortMeal = (props: TMenuAndMeal) => {
 
   return (
     <Section className="h-fit">
-      <View className="flex-row justify-between">
+      <View className="flex-row justify-between gap-x-2 flex-wrap">
         <MealName meal={props.meal} />
         {MealStatusElement}
       </View>
@@ -151,16 +151,20 @@ const LongMeal = (props: TMenuAndMeal, showButton: boolean) => {
   }, []);
 
   const handleReserve = () => {
-    updateMessage({ message: "Reservando..." });
+    updateMessage({ message: "Reservando sua refeição..." });
     reserve(
       { meal_id: props.meal.id, date: props.menu.date },
       {
-        onSuccess: (response) =>
+        onSuccess: (response) => {
           updateMessage({
             ...response,
-            success: response.sucesso,
-            message: (response as any)?.mensagem,
-          }),
+            success: true,
+            message: "Refeição reservada com sucesso!",
+          });
+          setTimeout(() => {
+            updateMessage({ message: "", success: true });
+          }, 2000);
+        },
         onError: (error) =>
           updateMessage({ message: error.message, success: false }),
       }
@@ -174,7 +178,7 @@ const LongMeal = (props: TMenuAndMeal, showButton: boolean) => {
 
   return (
     <Section className="flex-col h-fit gap-y-1">
-      <View className="flex-row justify-between">
+      <View className="flex-row justify-between gap-x-2 flex-wrap">
         <MealName meal={props.meal} />
         {MealStatusElement}
       </View>
@@ -218,7 +222,7 @@ const LongMeal = (props: TMenuAndMeal, showButton: boolean) => {
 const UnavailableMeal = ({ meal }: { meal: TMeal }) => {
   return (
     <Section className="flex-col h-fit gap-y-2">
-      <View className="flex-row justify-between">
+      <View className="flex-row justify-between gap-x-2 flex-wrap">
         <MealName meal={meal} />
         <MealStatus
           color="gray-600"
@@ -244,7 +248,7 @@ export const Menu = (props: IMealProps) => {
 export const MealLoading = () => {
   return (
     <Section className="flex-col h-fit gap-y-2">
-      <View className="flex-row justify-between">
+      <View className="flex-row justify-between gap-x-2 flex-wrap">
         <View className="w-[140px] h-[20px] bg-gray-300"></View>
         <View className="w-[80px] h-[20px] bg-gray-300"></View>
       </View>

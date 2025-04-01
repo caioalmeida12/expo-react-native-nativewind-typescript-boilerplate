@@ -37,13 +37,15 @@ const useResponseMessage = () => {
     if (!message) return null;
 
     let colorClass = style.isInfo
-      ? "text-blue-400"
+      ? "text-azul-400"
       : style.isSuccess
-        ? "text-green-300"
-        : "text-red-400";
+        ? "text-verde-400"
+        : "text-vermelho-400";
 
     return (
-      <Text className={`text-center text-sm ${colorClass}`}>{message}</Text>
+      <Text className={`text-center whitespace-pre-line text-sm ${colorClass}`}>
+        {message}
+      </Text>
     );
   };
 
