@@ -1,12 +1,14 @@
 import { Stack } from "expo-router";
-import { KeyboardAvoidingView, Platform, View, ScrollView } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { MealHistory } from "../components/MealHistory";
 import { Navbar } from "../components/Navbar";
 import { PersonalInformations } from "../components/PersonalInformations";
+import { useMealHistory } from "../hooks/useMealHistory";
 import { useStudentInfo } from "../hooks/useStudentInfo";
-import MenusByDay from "../components/MenusByDay";
 
-export default function HomeScreen() {
-  const { studentInfo, isLoading } = useStudentInfo();
+export default function MealHistoryScreen() {
+  const { mealHistory, isLoading: isMealHistoryLoading } = useMealHistory();
+  const { studentInfo, isLoading: isStudentInfoLoading } = useStudentInfo();
 
   const studentNavItems = [
     {
@@ -27,7 +29,7 @@ export default function HomeScreen() {
     },
   ];
 
-  if (isLoading) return "Loading";
+  if (isMealHistoryLoading) return "Loading";
 
   return (
     <>
@@ -37,14 +39,16 @@ export default function HomeScreen() {
         className="flex-1"
       >
         <Navbar navItems={studentNavItems} />
+        <View className="p-4 flex flex-col gap-y-4">
+          {studentInfo ? (
+            <>
+              <PersonalInformations studentInfo={studentInfo} />
+            </>
+          ) : null}
+        </View>
         <ScrollView className="flex-1">
           <View className="p-4 flex flex-col gap-y-4">
-            {studentInfo ? (
-              <>
-                <PersonalInformations studentInfo={studentInfo} />
-                <MenusByDay />
-              </>
-            ) : null}
+            <MealHistory />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

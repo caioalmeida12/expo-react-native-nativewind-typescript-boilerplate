@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FetchHelper } from "../helpers/FetchHelper";
-import { TMeal, TMenuAndMeal } from "../types/TMeal";
+import { TMeal, TMealHistory, TMealHistorySchema } from "../types/TMeal";
 import { useMenusByDay } from "./useMenusByDay";
 
 type ReservationParams = {
@@ -11,6 +11,29 @@ type ReservationParams = {
 type JustificationParams = {
   ticket_id: number;
   justificationIndex: number;
+};
+
+const urlPorTipoDeTicket = {
+  "a-ser-utilizado": "/to-use",
+  utilizado: "/used",
+  cancelado: "/canceled",
+  "nao-utilizado": "/not-used",
+} as const;
+
+type TicketType = keyof typeof urlPorTipoDeTicket;
+
+const buscarTickets = async (tipo: TicketType): Promise<TMealHistory[]> => {
+  const API_URL = `/student/schedulings${urlPorTipoDeTicket[tipo]}?page=1`;
+
+  const response = await FetchHelper.get<any>({
+    rota: API_URL,
+  });
+
+  if (!response.sucesso) {
+    throw new Error(response.message);
+  }
+
+  return response.resposta[0].data;
 };
 
 export const useMeals = () => {
@@ -55,20 +78,43 @@ export const useMeals = () => {
   });
 
   // Query for meal history
-  const mealHistory = useQuery({
+  const mealHistory = useQuery<TMealHistory[]>({
     queryKey: ["mealHistory"],
     queryFn: async ({ signal }) => {
-      const response = await FetchHelper.get<TMenuAndMeal[]>({
-        rota: "/student/schedulings/to-use",
-        headers: { signal: signal as any },
+      const [aSerUtilizado, utilizado, cancelado, naoUtilizado] =
+        await Promise.all([
+          buscarTickets("a-ser-utilizado"),
+          buscarTickets("utilizado"),
+          buscarTickets("cancelado"),
+          buscarTickets("nao-utilizado"),
+        ]);
+
+      // Add status to each ticket
+      aSerUtilizado.forEach((ticket) => (ticket.status = "a-ser-utilizado"));
+      utilizado.forEach((ticket) => (ticket.status = "utilizado"));
+      cancelado.forEach((ticket) => (ticket.status = "cancelado"));
+      naoUtilizado.forEach((ticket) => {
+        ticket.absenceJustification
+          ? (ticket.status = "justificado")
+          : (ticket.status = "nao-utilizado");
       });
 
-      if (!response.sucesso) {
-        throw new Error(response.message);
-      }
+      // Concatenate and sort all tickets by date
+      const allTickets = [
+        ...aSerUtilizado,
+        ...utilizado,
+        ...cancelado,
+        ...naoUtilizado,
+      ];
+      const sortedTickets = allTickets.sort(
+        (a, b) =>
+          new Date(b.menu.date).getTime() - new Date(a.menu.date).getTime()
+      );
 
-      return response.resposta;
+      // Return most recent tickets
+      return sortedTickets.slice(0, 10);
     },
+    initialData: [],
   });
 
   // Mutation for meal cancellation
@@ -127,10 +173,14 @@ export const useMeals = () => {
     // Loading states
     isLoading:
       isMenusLoading || authorizedMeals.isPending || mealHistory.isPending,
+    isFetching: mealHistory.isFetching,
 
     // Error states
     error:
-      reserveMutation.error || cancelMutation.error || justifyMutation.error,
+      reserveMutation.error ||
+      cancelMutation.error ||
+      justifyMutation.error ||
+      mealHistory.error,
 
     // Refetch functions
     refetchHistory: mealHistory.refetch,

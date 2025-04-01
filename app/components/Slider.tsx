@@ -7,6 +7,7 @@ interface SliderProps extends ViewProps {
   tooltip?: React.ReactNode;
   onNext?: () => void;
   onPrevious?: () => void;
+  showArrows?: boolean;
 }
 
 export const Slider: React.FC<SliderProps> = ({
@@ -14,6 +15,7 @@ export const Slider: React.FC<SliderProps> = ({
   onPrevious,
   onNext,
   tooltip,
+  showArrows = true,
   ...rest
 }) => {
   return (
@@ -21,20 +23,22 @@ export const Slider: React.FC<SliderProps> = ({
       {...rest}
       className={`${rest.className} flex items-center justify-between rounded bg-cinza-600 p-4 text-center font-bold text-branco-400`}
     >
-      <TouchableOpacity
-        onPress={onPrevious}
-        accessibilityLabel="Ver dia anterior"
-        className="relative before:inset-[-.5em] before:rounded before:bg-branco-400 before:opacity-10 before:content-[''] hover:before:absolute"
-      >
-        <Ionicons
-          name="chevron-back"
-          size={24}
-          color="white"
-          className="fill-branco-400"
-        />
-      </TouchableOpacity>
+      {showArrows && (
+        <TouchableOpacity
+          onPress={onPrevious}
+          accessibilityLabel="Ver dia anterior"
+          className="relative before:inset-[-.5em] before:rounded before:bg-branco-400 before:opacity-10 before:content-[''] hover:before:absolute"
+        >
+          <Ionicons
+            name="chevron-back"
+            size={24}
+            color="white"
+            className="fill-branco-400"
+          />
+        </TouchableOpacity>
+      )}
 
-      <View className="flex-1 mx-2 items-center">
+      <View className={`flex-1 ${showArrows ? "mx-2" : ""} items-center`}>
         <Text
           className="text-branco-400 font-bold text-center flex-wrap"
           numberOfLines={2}
@@ -44,18 +48,20 @@ export const Slider: React.FC<SliderProps> = ({
         {tooltip}
       </View>
 
-      <TouchableOpacity
-        onPress={onNext}
-        accessibilityLabel="Ver dia posterior"
-        className="relative before:inset-[-.5em] before:rounded before:bg-branco-400 before:opacity-10 before:content-[''] hover:before:absolute"
-      >
-        <Ionicons
-          name="chevron-forward"
-          size={24}
-          color="white"
-          className="fill-branco-400"
-        />
-      </TouchableOpacity>
+      {showArrows && (
+        <TouchableOpacity
+          onPress={onNext}
+          accessibilityLabel="Ver dia posterior"
+          className="relative before:inset-[-.5em] before:rounded before:bg-branco-400 before:opacity-10 before:content-[''] hover:before:absolute"
+        >
+          <Ionicons
+            name="chevron-forward"
+            size={24}
+            color="white"
+            className="fill-branco-400"
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
