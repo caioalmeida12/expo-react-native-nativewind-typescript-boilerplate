@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FetchHelper } from "../helpers/FetchHelper";
-import { TMeal, TMealHistory, TMealHistorySchema } from "../types/TMeal";
+import {
+  TMeal,
+  TMealHistory,
+  TMealHistorySchema,
+  TAllowedMeal,
+  TAllowedMealsResponse,
+} from "../types/TMeal";
 import { useMenusByDay } from "./useMenusByDay";
 
 type ReservationParams = {
@@ -159,6 +165,33 @@ export const useMeals = () => {
     },
   });
 
+  // Query for allowed meals
+  const allowedMealsQuery = useQuery<TAllowedMealsResponse>({
+    queryKey: ["allowedMeals"],
+    queryFn: async ({ signal }) => {
+      console.log("Starting allowedMealsQuery fetch");
+
+      const response = await FetchHelper.get<TAllowedMealsResponse>({
+        rota: "/student/schedulings/allows-meal-by-day",
+        headers: { signal: signal as any },
+      });
+
+      console.log("FetchHelper response:", response);
+
+      if (!response.sucesso) {
+        console.log("Request failed:", response.message);
+        throw new Error(response.message);
+      }
+
+      return response.resposta;
+    },
+    initialData: [],
+    retry: false, // Add this to prevent retries and see errors immediately
+    onError: (error) => {
+      console.log("Query error:", error);
+    },
+  });
+
   return {
     // Queries
     meals: menus,
@@ -170,17 +203,25 @@ export const useMeals = () => {
     cancel: cancelMutation.mutate,
     justify: justifyMutation.mutate,
 
+    allowedMeals: allowedMealsQuery.data,
+    isAllowedMealsLoading: allowedMealsQuery.isPending,
+    allowedMealsError: allowedMealsQuery.error,
+    refetchAllowedMeals: allowedMealsQuery.refetch,
+
     // Loading states
     isLoading:
-      isMenusLoading || authorizedMeals.isPending || mealHistory.isPending,
-    isFetching: mealHistory.isFetching,
+      isMenusLoading ||
+      authorizedMeals.isPending ||
+      mealHistory.isPending ||
+      allowedMealsQuery.isPending,
 
     // Error states
     error:
       reserveMutation.error ||
       cancelMutation.error ||
       justifyMutation.error ||
-      mealHistory.error,
+      mealHistory.error ||
+      allowedMealsQuery.error,
 
     // Refetch functions
     refetchHistory: mealHistory.refetch,

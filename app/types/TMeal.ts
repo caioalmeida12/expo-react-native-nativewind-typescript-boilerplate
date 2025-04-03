@@ -87,8 +87,20 @@ export const TMealHistorySchema = z.object({
   }),
 });
 
+export const TAllowedMealSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  type: z.string(),
+  enabled: z.boolean(),
+});
+
 export type TMeal = z.infer<typeof TMeal>;
 export type TMenu = z.infer<typeof TMenu>;
 export type TMenuAndMeal = z.infer<typeof TMealAndMenu>;
 export type TShift = z.infer<typeof TShift>;
 export type TMealHistory = z.infer<typeof TMealHistorySchema>;
+export type TAllowedMeal = z.infer<typeof TAllowedMealSchema>;
+export type TAllowedMealsResponse = TAllowedMeal[];
