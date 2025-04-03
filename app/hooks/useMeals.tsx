@@ -3,9 +3,7 @@ import { FetchHelper } from "../helpers/FetchHelper";
 import {
   TMeal,
   TMealHistory,
-  TMealHistorySchema,
-  TAllowedMeal,
-  TAllowedMealsResponse,
+  TAllowedMealResponseSchema,
 } from "../types/TMeal";
 import { useMenusByDay } from "./useMenusByDay";
 
@@ -19,6 +17,15 @@ type JustificationParams = {
   justificationIndex: number;
 };
 
+type TMealHistoryWithStatus = TMealHistory & {
+  status:
+    | "a-ser-utilizado"
+    | "utilizado"
+    | "cancelado"
+    | "justificado"
+    | "nao-utilizado";
+};
+
 const urlPorTipoDeTicket = {
   "a-ser-utilizado": "/to-use",
   utilizado: "/used",
@@ -30,7 +37,6 @@ type TicketType = keyof typeof urlPorTipoDeTicket;
 
 const buscarTickets = async (tipo: TicketType): Promise<TMealHistory[]> => {
   const API_URL = `/student/schedulings${urlPorTipoDeTicket[tipo]}?page=1`;
-
   const response = await FetchHelper.get<any>({
     rota: API_URL,
   });
@@ -46,7 +52,6 @@ export const useMeals = () => {
   const queryClient = useQueryClient();
   const { menus, isLoading: isMenusLoading } = useMenusByDay();
 
-  // Mutation for meal reservation
   const reserveMutation = useMutation({
     mutationFn: async (params: ReservationParams) => {
       const response = await FetchHelper.post<{ message: string }>({
@@ -66,27 +71,28 @@ export const useMeals = () => {
     },
   });
 
-  // Query for authorized meals
-  const authorizedMeals = useQuery({
-    queryKey: ["authorizedMeals"],
-    queryFn: async ({ signal }) => {
-      const response = await FetchHelper.get<TMeal[]>({
+  const allowedMealsQuery = useQuery<TMeal[]>({
+    queryKey: ["allowedMeals"],
+    queryFn: async () => {
+      const response = await FetchHelper.get({
         rota: "/student/schedulings/allows-meal-by-day",
-        headers: { signal: signal as any },
       });
 
-      if (!response.sucesso) {
-        throw new Error(response.message);
+      const validated = TAllowedMealResponseSchema.safeParse(response);
+
+      if (!validated.success) {
+        throw new Error(`Invalid response: ${validated.error.message}`);
       }
 
-      return response.resposta;
+      return validated.data.resposta.map((item) => item.meal);
     },
+    initialData: [],
+    retry: false,
   });
 
-  // Query for meal history
-  const mealHistory = useQuery<TMealHistory[]>({
+  const mealHistory = useQuery<TMealHistoryWithStatus[]>({
     queryKey: ["mealHistory"],
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const [aSerUtilizado, utilizado, cancelado, naoUtilizado] =
         await Promise.all([
           buscarTickets("a-ser-utilizado"),
@@ -95,35 +101,44 @@ export const useMeals = () => {
           buscarTickets("nao-utilizado"),
         ]);
 
-      // Add status to each ticket
-      aSerUtilizado.forEach((ticket) => (ticket.status = "a-ser-utilizado"));
-      utilizado.forEach((ticket) => (ticket.status = "utilizado"));
-      cancelado.forEach((ticket) => (ticket.status = "cancelado"));
-      naoUtilizado.forEach((ticket) => {
-        ticket.absenceJustification
-          ? (ticket.status = "justificado")
-          : (ticket.status = "nao-utilizado");
-      });
+      const withStatus = {
+        aSerUtilizado: aSerUtilizado.map((ticket) => ({
+          ...ticket,
+          status: "a-ser-utilizado" as const,
+        })),
+        utilizado: utilizado.map((ticket) => ({
+          ...ticket,
+          status: "utilizado" as const,
+        })),
+        cancelado: cancelado.map((ticket) => ({
+          ...ticket,
+          status: "cancelado" as const,
+        })),
+        naoUtilizado: naoUtilizado.map((ticket) => ({
+          ...ticket,
+          status: ticket.absenceJustification
+            ? ("justificado" as const)
+            : ("nao-utilizado" as const),
+        })),
+      };
 
-      // Concatenate and sort all tickets by date
       const allTickets = [
-        ...aSerUtilizado,
-        ...utilizado,
-        ...cancelado,
-        ...naoUtilizado,
+        ...withStatus.aSerUtilizado,
+        ...withStatus.utilizado,
+        ...withStatus.cancelado,
+        ...withStatus.naoUtilizado,
       ];
+
       const sortedTickets = allTickets.sort(
         (a, b) =>
           new Date(b.menu.date).getTime() - new Date(a.menu.date).getTime()
       );
 
-      // Return most recent tickets
       return sortedTickets.slice(0, 10);
     },
     initialData: [],
   });
 
-  // Mutation for meal cancellation
   const cancelMutation = useMutation({
     mutationFn: async (params: ReservationParams) => {
       const response = await FetchHelper.put<{ message: string }>({
@@ -143,7 +158,6 @@ export const useMeals = () => {
     },
   });
 
-  // Mutation for meal justification
   const justifyMutation = useMutation({
     mutationFn: async ({
       ticket_id,
@@ -165,65 +179,25 @@ export const useMeals = () => {
     },
   });
 
-  // Query for allowed meals
-  const allowedMealsQuery = useQuery<TAllowedMealsResponse>({
-    queryKey: ["allowedMeals"],
-    queryFn: async ({ signal }) => {
-      console.log("Starting allowedMealsQuery fetch");
-
-      const response = await FetchHelper.get<TAllowedMealsResponse>({
-        rota: "/student/schedulings/allows-meal-by-day",
-        headers: { signal: signal as any },
-      });
-
-      console.log("FetchHelper response:", response);
-
-      if (!response.sucesso) {
-        console.log("Request failed:", response.message);
-        throw new Error(response.message);
-      }
-
-      return response.resposta;
-    },
-    initialData: [],
-    retry: false, // Add this to prevent retries and see errors immediately
-    onError: (error) => {
-      console.log("Query error:", error);
-    },
-  });
-
   return {
-    // Queries
     meals: menus,
-    authorizedMeals: authorizedMeals.data,
+    authorizedMeals: allowedMealsQuery.data,
     mealHistory: mealHistory.data,
-
-    // Mutations
     reserve: reserveMutation.mutate,
     cancel: cancelMutation.mutate,
     justify: justifyMutation.mutate,
-
     allowedMeals: allowedMealsQuery.data,
     isAllowedMealsLoading: allowedMealsQuery.isPending,
     allowedMealsError: allowedMealsQuery.error,
     refetchAllowedMeals: allowedMealsQuery.refetch,
-
-    // Loading states
     isLoading:
-      isMenusLoading ||
-      authorizedMeals.isPending ||
-      mealHistory.isPending ||
-      allowedMealsQuery.isPending,
-
-    // Error states
+      isMenusLoading || allowedMealsQuery.isPending || mealHistory.isPending,
     error:
       reserveMutation.error ||
       cancelMutation.error ||
       justifyMutation.error ||
       mealHistory.error ||
       allowedMealsQuery.error,
-
-    // Refetch functions
     refetchHistory: mealHistory.refetch,
   };
 };

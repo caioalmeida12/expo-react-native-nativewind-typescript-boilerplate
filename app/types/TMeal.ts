@@ -97,6 +97,50 @@ export const TAllowedMealSchema = z.object({
   enabled: z.boolean(),
 });
 
+export const TAllowedMealResponseSchema = z.object({
+  sucesso: z.boolean(),
+  message: z.string().optional(),
+  resposta: z.array(
+    z.object({
+      id: z.number(),
+      friday: z.number(),
+      monday: z.number(),
+      saturday: z.number(),
+      thursday: z.number(),
+      tuesday: z.number(),
+      wednesday: z.number(),
+      meal_id: z.number(),
+      student_id: z.number(),
+      comentario: z.string().nullable(),
+      meal: TMeal,
+      student: z.object({
+        id: z.number(),
+        active: z.number(),
+        dateValid: z.string(),
+        mat: z.string(),
+        name: z.string(),
+        semRegular: z.number(),
+        course_id: z.number(),
+        shift_id: z.number(),
+        photo: z.null(),
+        campus_id: z.number(),
+        observation: z.null(),
+        republic: z.null(),
+        block: z.null(),
+        hasKey: z.number(),
+        cabinet: z.null(),
+        key: z.null(),
+        course: z.object({
+          id: z.number(),
+          description: z.string(),
+          initials: z.string(),
+          campus_id: z.number(),
+        }),
+      }),
+    })
+  ),
+});
+
 export type TMeal = z.infer<typeof TMeal>;
 export type TMenu = z.infer<typeof TMenu>;
 export type TMenuAndMeal = z.infer<typeof TMealAndMenu>;
@@ -104,3 +148,4 @@ export type TShift = z.infer<typeof TShift>;
 export type TMealHistory = z.infer<typeof TMealHistorySchema>;
 export type TAllowedMeal = z.infer<typeof TAllowedMealSchema>;
 export type TAllowedMealsResponse = TAllowedMeal[];
+export type TAllowedMealResponse = z.infer<typeof TAllowedMealResponseSchema>;

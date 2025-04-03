@@ -52,12 +52,10 @@ export function AllowedMeals() {
                 {Object.values(
                   [1, 2, 3, 4].reduce(
                     (acc, mealId) => {
-                      const meal = allowedMeals.find(
-                        (m) => m.meal.id === mealId
-                      );
+                      const meal = allowedMeals.find((m) => m.id === mealId);
                       if (meal) {
                         acc[mealId] = {
-                          meal: meal.meal,
+                          meal: meal,
                           days: getAllowedDaysOfWeek(meal),
                         };
                       }
