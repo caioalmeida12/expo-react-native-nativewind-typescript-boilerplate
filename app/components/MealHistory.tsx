@@ -34,7 +34,7 @@ const HistoryList = memo(({ item }: { item: TMealHistory | null }) => (
 ));
 
 export const MealHistory: React.FC = () => {
-  const { mealHistory, isFetching, error, refetchHistory } = useMeals();
+  const { mealHistory, isLoading, error, refetchHistory } = useMeals();
 
   return (
     <>
@@ -51,7 +51,7 @@ export const MealHistory: React.FC = () => {
           />
 
           <View className="flex-1">
-            {isFetching ? (
+            {isLoading ? (
               <LoadingState />
             ) : (
               <FlatList
@@ -69,7 +69,7 @@ export const MealHistory: React.FC = () => {
                   ) : null
                 }
                 onRefresh={refetchHistory}
-                refreshing={isFetching}
+                refreshing={!!isLoading}
                 ItemSeparatorComponent={() => <View className="h-4" />}
               />
             )}
