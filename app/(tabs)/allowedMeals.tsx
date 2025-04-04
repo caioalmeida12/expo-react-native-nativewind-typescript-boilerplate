@@ -37,13 +37,11 @@ export default function AllowedMealsScreen() {
         className="flex-1"
       >
         <Navbar navItems={studentNavItems} />
-        <View className="p-4 flex flex-col gap-y-4">
-          {studentInfo ? (
-            <PersonalInformations studentInfo={studentInfo} />
-          ) : null}
-        </View>
         <ScrollView className="flex-1">
           <View className="p-4 flex flex-col gap-y-4">
+            {studentInfo ? (
+              <PersonalInformations studentInfo={studentInfo} />
+            ) : null}
             <AllowedMeals />
           </View>
         </ScrollView>

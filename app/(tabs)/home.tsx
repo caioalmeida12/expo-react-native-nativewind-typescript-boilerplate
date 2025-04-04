@@ -37,7 +37,7 @@ export default function HomeScreen() {
         className="flex-1"
       >
         <Navbar navItems={studentNavItems} />
-        <ScrollView className="flex-1">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <View className="p-4 flex flex-col gap-y-4">
             {studentInfo ? (
               <>
