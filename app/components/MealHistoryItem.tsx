@@ -7,34 +7,36 @@ import { MealName } from "./MealName";
 import { MealTime } from "./MealTime";
 import { DatesHelper } from "../helpers/DatesHelper";
 
+type StatusType =
+  | "a-ser-utilizado"
+  | "utilizado"
+  | "justificado"
+  | "cancelado"
+  | "nao-utilizado";
+
 const statusElements = {
   "a-ser-utilizado": {
     color: "green-300" as const,
-    icon: "circulo-check" as const,
     text: "Reservado",
     tooltipText: "Você ainda pode utilizar este ticket.",
   },
   utilizado: {
     color: "green-300" as const,
-    icon: "circulo-check" as const,
     text: "Utilizado",
     tooltipText: "Você reservou e utilizou este ticket.",
   },
   justificado: {
     color: "blue-400" as const,
-    icon: "circulo-check" as const,
     text: "Justificado",
     tooltipText: "Você justificou sua ausência para esta refeição.",
   },
   cancelado: {
     color: "red-400" as const,
-    icon: "tag-x" as const,
     text: "Cancelado",
     tooltipText: "Você cancelou esta reserva.",
   },
   "nao-utilizado": {
     color: "yellow-200" as const,
-    icon: "circulo-x" as const,
     text: "Não Utilizado",
     tooltipText: "Você esteve ausente nesta refeição.",
   },
@@ -44,23 +46,31 @@ const parseMenuDescription = (description: string) => {
   return description.split(/[;+]/).filter((item) => item.trim() !== "");
 };
 
-export const MealHistoryItem: React.FC<TMealHistory> = (props) => {
+interface ExtendedTMealHistory extends TMealHistory {
+  status: StatusType;
+}
+
+export const MealHistoryItem: React.FC<ExtendedTMealHistory> = (props) => {
   if (!props.status || !props.meal.id) return null;
 
-  const status = statusElements[props.status as keyof typeof statusElements];
+  const status = statusElements[props.status];
 
   if (!status) {
     console.warn(`Invalid status value: ${props.status}`);
     return null;
   }
 
+  const mealWithLiteralCampusId = {
+    ...props.meal,
+    campus_id: 1 as const,
+  };
+
   return (
     <Section className="flex-col h-fit gap-y-1">
       <View className="flex-row justify-between gap-x-2 flex-wrap">
-        <MealName meal={props.meal} />
+        <MealName meal={mealWithLiteralCampusId} />
         <MealStatus
           color={status.color}
-          icon={status.icon}
           text={status.text}
           tooltipText={status.tooltipText}
         />
